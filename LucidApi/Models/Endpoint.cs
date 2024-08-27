@@ -1,8 +1,13 @@
+using System.Text.Json.Serialization;
+
 namespace LucidApi.Models
 {
     public class Endpoint
     {
-        public string Style { get; set; }
-        public string ConnectedTo { get; set; }
+        [JsonPropertyName("style")]
+        public string? Style { get; set; }
+
+        [JsonPropertyName("connectedTo")]
+        public string? ConnectedTo { get; set; }
     }
 }

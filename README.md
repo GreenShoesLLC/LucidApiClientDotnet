@@ -17,12 +17,12 @@ This project uses environment variables to manage sensitive information such as 
 2. Add the following content to the file, replacing the placeholder values with your actual Lucid API credentials:
 
 ```
-CLIENT_ID=your_client_id_here
-CLIENT_SECRET=your_client_secret_here
-REDIRECT_URI=your_redirect_uri_here
+LUCID_CLIENT_ID=your_LUCID_CLIENT_ID_here
+LUCID_CLIENT_SECRET=your_LUCID_CLIENT_SECRET_here
+LUCID_REDIRECT_URI=your_LUCID_REDIRECT_URI_here
 ```
 
-Replace `your_client_id_here`, `your_client_secret_here`, and `your_redirect_uri_here` with your actual Lucid API credentials.
+Replace `your_LUCID_CLIENT_ID_here`, `your_LUCID_CLIENT_SECRET_here`, and `your_LUCID_REDIRECT_URI_here` with your actual Lucid API credentials.
 
 ### Important Notes
 
@@ -58,7 +58,7 @@ The project is set up with the following scopes:
 If you encounter issues related to missing environment variables:
 
 1. Verify that your `.env` file is in the correct location (`LucidClientTestApp` directory).
-2. Check that the variable names in your `.env` file match exactly with what's expected (CLIENT_ID, CLIENT_SECRET, REDIRECT_URI).
+2. Check that the variable names in your `.env` file match exactly with what's expected (LUCID_CLIENT_ID, LUCID_CLIENT_SECRET, LUCID_REDIRECT_URI).
 3. Ensure there are no spaces around the '=' sign in your `.env` file.
 4. If running from an IDE, try restarting it to ensure it picks up the new environment variables.
 

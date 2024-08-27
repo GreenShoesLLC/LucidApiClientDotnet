@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace LucidApi.Models
 {
     public enum AttributeType

@@ -7,26 +7,10 @@ using LucidApi.Models;
 
 class Program
 {
-    private static readonly string? clientId;
-    private static readonly string? clientSecret;
-    private static readonly string? redirectUri;
+    private static readonly string? lucidClientId;
+    private static readonly string? lucidClientSecret;
+    private static readonly string? lucidRedirectUri;
 
-    private static readonly List<string> userScopes = new List<string>
-    {
-        "lucidchart.document.content",
-        "lucidchart.document.content:readonly",
-        "offline_access",
-        "user.profile",
-        "account.user:readonly",
-        "account.info"
-    };
-
-    private static readonly List<string> accountScopes = new List<string>
-    {
-        "offline_access",
-        "account.user:readonly",
-        "account.info"
-    };
     static Program()
     {
         Console.WriteLine("Current Directory: " + Directory.GetCurrentDirectory());
@@ -50,13 +34,13 @@ class Program
             Console.WriteLine("Error loading .env file: " + ex.Message);
         }
 
-        clientId = GetEnvironmentVariable("CLIENT_ID");
-        clientSecret = GetEnvironmentVariable("CLIENT_SECRET");
-        redirectUri = GetEnvironmentVariable("REDIRECT_URI");
+        lucidClientId = GetEnvironmentVariable("LUCID_CLIENT_ID");
+        lucidClientSecret = GetEnvironmentVariable("LUCID_CLIENT_SECRET");
+        lucidRedirectUri = GetEnvironmentVariable("LUCID_REDIRECT_URI");
 
-        Console.WriteLine("CLIENT_ID: " + (clientId ?? "not found"));
-        Console.WriteLine("CLIENT_SECRET: " + (clientSecret != null ? "found" : "not found"));
-        Console.WriteLine("REDIRECT_URI: " + (redirectUri ?? "not found"));
+        Console.WriteLine("LUCID_CLIENT_ID: " + (lucidClientId ?? "not found"));
+        Console.WriteLine("LUCID_CLIENT_SECRET: " + (lucidClientSecret != null ? "found" : "not found"));
+        Console.WriteLine("LUCID_REDIRECT_URI: " + (lucidRedirectUri ?? "not found"));
     }
     static async Task Main(string[] args)
     {
@@ -77,85 +61,121 @@ class Program
     }
     static async Task AccountClientStuff()
     {
-        var accountClient = new LucidAccountClient(clientId, clientSecret, redirectUri, accountScopes);
-        await GetAccessTokenAsync(accountClient);
-
-
-        try
+        if (!string.IsNullOrEmpty(lucidClientId) && !string.IsNullOrEmpty(lucidClientSecret) && !string.IsNullOrEmpty(lucidRedirectUri))
         {
-            var introspectionResult = await accountClient.IntrospectTokenAsync(accountClient.TokenData["access_token"].ToString());
-            Console.WriteLine($"Introspection result: {JsonConvert.SerializeObject(introspectionResult, Formatting.Indented)}");
+            var accountClient = new LucidAccountClient(lucidClientId, lucidClientSecret, lucidRedirectUri, LucidScopes.AccountScopes);
+            await GetAccessTokenAsync(accountClient);
 
-            var accountInfo = await accountClient.GetAccountInfoAsync();
-            Console.WriteLine($"User profile: {accountInfo}");
+            try
+            {
+                if (accountClient.TokenData != null && accountClient.TokenData.TryGetValue("access_token", out var accessToken) &&
+                    accessToken != null)
+                {
+#pragma warning disable CS8604 // Possible null reference argument.
+                    var introspectionResult = await accountClient.IntrospectTokenAsync(accessToken.ToString());
+#pragma warning restore CS8604 // Possible null reference argument.
+                    Console.WriteLine($"Introspection result: {JsonConvert.SerializeObject(introspectionResult, Formatting.Indented)}");
+
+                    var accountInfo = await accountClient.GetAccountInfoAsync();
+                    Console.WriteLine($"User profile: {accountInfo}");
+                }
+                else
+                {
+                    // Handle the case where the access token is not available
+                    Console.WriteLine("Access token is not available.");
+                    // Or throw an exception, log an error, etc.
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during token introspection: {ex.Message}");
+            }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error during token introspection: {ex.Message}");
-        }
+
+
+
+
 
     }
     static async Task UserClientStuff()
     {
-        var user_client = new LucidUserClient(clientId, clientSecret, redirectUri, userScopes);
-        await GetAccessTokenAsync(user_client);
-
-
-        try
+        if (!string.IsNullOrEmpty(lucidClientId) && !string.IsNullOrEmpty(lucidClientSecret) && !string.IsNullOrEmpty(lucidRedirectUri))
         {
-            var introspectionResult = await user_client.IntrospectTokenAsync(user_client.TokenData["access_token"].ToString());
-            Console.WriteLine($"Introspection result: {JsonConvert.SerializeObject(introspectionResult, Formatting.Indented)}");
+            var user_client = new LucidUserClient(lucidClientId, lucidClientSecret, lucidRedirectUri, LucidScopes.UserScopes);
+            await GetAccessTokenAsync(user_client);
 
-            var accountInfo = await user_client.GetAccountInfoAsync();
-            Console.WriteLine($"User profile: {accountInfo}");
 
-            // Fetch all documents without any filters
-            var allDocuments = await user_client.SearchDocumentsAsync();
-
-            // Process the list of documents as needed
-            foreach (var document in allDocuments.Where(x => x.Title == "FlowchartQuodsi"))
+            try
             {
-                Console.WriteLine($"Document ID: {document.DocumentId}, Title: {document.Title}");
 
-                string documentId = document.DocumentId;
-                var documentContents = await user_client.GetDocumentContentsAsync(documentId);
-
-                Console.WriteLine($"Document Title: {documentContents.Title}");
-                foreach (var page in documentContents.Pages)
+                if (user_client.TokenData != null && user_client.TokenData.TryGetValue("access_token", out var accessToken) && accessToken != null)
                 {
+#pragma warning disable CS8604 // Possible null reference argument.
+                    var introspectionResult = await user_client.IntrospectTokenAsync(accessToken.ToString());
+#pragma warning restore CS8604 // Possible null reference argument.
 
-                    Console.WriteLine($"Page Title: {page.Title}");
+                    Console.WriteLine($"Introspection result: {JsonConvert.SerializeObject(introspectionResult, Formatting.Indented)}");
 
-                    foreach (var dataPair in page.CustomData ?? Enumerable.Empty<DataPair>())
+                    var accountInfo = await user_client.GetAccountInfoAsync();
+                    Console.WriteLine($"User profile: {accountInfo}");
+
+                    // Fetch all documents without any filters
+                    var allDocuments = await user_client.SearchDocumentsAsync();
+
+                    foreach (var document in allDocuments.Where(x => x.Title == "FlowchartQuodsi"))
                     {
-                        Console.WriteLine($"Page Data: {dataPair.Key} {dataPair.Value}");
-                    }
+                        Console.WriteLine($"Document ID: {document.DocumentId ?? "N/A"}, Title: {document.Title ?? "Untitled"}");
 
-                    foreach (var shape in page.Items.Shapes)
-                    {
-                        Console.WriteLine($"Shape ID: {shape.Id}, Class: {shape.Class}");
-                        foreach (var item in shape.CustomData)
+                        if (string.IsNullOrEmpty(document.DocumentId))
                         {
-                            Console.WriteLine($"Shape Data: {item.Key} {item.Value}");
+                            Console.WriteLine("Skipping document with null or empty ID");
+                            continue;
                         }
 
-                    }
-                    foreach (var line in page.Items.Lines)
-                    {
-                        Console.WriteLine($"Line ID: {line.Id}, Endpoint1: {line.Endpoint1}, Endpoint2: {line.Endpoint2}");
-                        foreach (var item in line.CustomData)
-                        {
-                            Console.WriteLine($"Line Data: {item.Key} {item.Value}");
-                        }
+                        var documentContents = await user_client.GetDocumentContentsAsync(document.DocumentId);
 
+                        Console.WriteLine($"Document Title: {documentContents.Title ?? "Untitled"}");
+                        foreach (var page in documentContents.Pages ?? Enumerable.Empty<Page>())
+                        {
+                            Console.WriteLine($"Page Title: {page.Title ?? "Untitled"}");
+
+                            foreach (var dataPair in page.CustomData ?? Enumerable.Empty<DataPair>())
+                            {
+                                Console.WriteLine($"Page Data: {dataPair.Key ?? "N/A"} {dataPair.Value ?? "N/A"}");
+                            }
+
+                            foreach (var shape in page.Items?.Shapes ?? Enumerable.Empty<Shape>())
+                            {
+                                Console.WriteLine($"Shape ID: {shape.Id ?? "N/A"}, Class: {shape.Class ?? "N/A"}");
+                                foreach (var item in shape.CustomData ?? Enumerable.Empty<DataPair>())
+                                {
+                                    Console.WriteLine($"Shape Data: {item.Key ?? "N/A"} {item.Value ?? "N/A"}");
+                                }
+                            }
+
+                            foreach (var line in page.Items?.Lines ?? Enumerable.Empty<Line>())
+                            {
+                                Console.WriteLine($"Line ID: {line.Id ?? "N/A"}, Endpoint1: {line.Endpoint1?.ToString() ?? "N/A"}, Endpoint2: {line.Endpoint2?.ToString() ?? "N/A"}");
+                                foreach (var item in line.CustomData ?? Enumerable.Empty<DataPair>())
+                                {
+                                    Console.WriteLine($"Line Data: {item.Key ?? "N/A"} {item.Value ?? "N/A"}");
+                                }
+                            }
+                        }
                     }
                 }
+                else
+                {
+                    // Handle the case where the access token is not available
+                    Console.WriteLine("Access token is not available.");
+                    // Or throw an exception, log an error, etc.
+                }
             }
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error during token introspection: {ex.Message}");
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during token introspection: {ex.Message}");
+            }
         }
 
     }

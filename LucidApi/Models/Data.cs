@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace LucidApi.Models
 {
     public class Data
     {
-        public List<Dictionary<string, object>> Collections { get; set; }
+        [JsonPropertyName("collections")]
+        public List<Dictionary<string, object>>? Collections { get; set; }
     }
 }

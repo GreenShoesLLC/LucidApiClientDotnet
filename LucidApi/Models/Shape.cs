@@ -1,11 +1,23 @@
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
+
 namespace LucidApi.Models
 {
     public class Shape
     {
-        public string Id { get; set; }
-        public string Class { get; set; }
-        public List<TextArea> TextAreas { get; set; }
-        public List<DataPair> CustomData { get; set; }
-        public List<LinkedData> LinkedData { get; set; }
+        [JsonPropertyName("id")]
+        public string? Id { get; set; }
+
+        [JsonPropertyName("class")]
+        public string? Class { get; set; }
+
+        [JsonPropertyName("textAreas")]
+        public List<TextArea>? TextAreas { get; set; }
+
+        [JsonPropertyName("customData")]
+        public List<DataPair>? CustomData { get; set; }
+
+        [JsonPropertyName("linkedData")]
+        public List<LinkedData>? LinkedData { get; set; }
     }
 }

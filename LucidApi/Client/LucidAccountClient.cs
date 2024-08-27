@@ -27,7 +27,7 @@ namespace LucidApi.Client
 
         }
 
-        public async IAsyncEnumerable<JToken> ManageUsersAsync(string action, Dictionary<string, object> userData = null, string apiVersion = "1", int pageSize = 200)
+        public async IAsyncEnumerable<JToken> ManageUsersAsync(string action, Dictionary<string, object>? userData = null, string apiVersion = "1", int pageSize = 200)
         {
             if (!_scopes.Contains("account.user") && !_scopes.Contains("account.user:readonly"))
             {
@@ -77,8 +77,41 @@ namespace LucidApi.Client
         public async Task<List<JToken>> GetUsersAsync(string apiVersion = "1")
         {
             var url = $"{ApiBaseUrl}/users";
-            var response = await MakeApiRequestAsync("GET", url, apiVersion: apiVersion);
-            return response["users"].ToObject<List<JToken>>();
+            try
+            {
+                var response = await MakeApiRequestAsync("GET", url, apiVersion: apiVersion);
+
+                if (response == null)
+                {
+                    throw new InvalidOperationException("API request returned null response.");
+                }
+
+                var usersToken = response["users"];
+                if (usersToken == null || usersToken.Type == JTokenType.Null)
+                {
+                    // If "users" key is missing or null, return an empty list
+                    return new List<JToken>();
+                }
+
+                if (usersToken.Type != JTokenType.Array)
+                {
+                    throw new JsonException("The 'users' property is not an array as expected.");
+                }
+
+                return usersToken.ToObject<List<JToken>>() ?? new List<JToken>();
+            }
+            catch (JsonException ex)
+            {
+                // Handle JSON parsing errors
+                Console.WriteLine($"Error parsing JSON response: {ex.Message}");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions
+                Console.WriteLine($"Error occurred while fetching users: {ex.Message}");
+                throw;
+            }
         }
     }
 }

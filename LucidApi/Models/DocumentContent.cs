@@ -1,13 +1,23 @@
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace LucidApi.Models
 {
     public class DocumentContent
     {
-        public string Id { get; set; }
-        public string Title { get; set; }
-        public Product Product { get; set; }
-        public List<Page> Pages { get; set; }
-        public Data Data { get; set; }
+        [JsonPropertyName("id")]
+        public string? Id { get; set; }
+
+        [JsonPropertyName("title")]
+        public string? Title { get; set; }
+
+        [JsonPropertyName("product")]
+        public Product? Product { get; set; }
+
+        [JsonPropertyName("pages")]
+        public List<Page>? Pages { get; set; }
+
+        [JsonPropertyName("data")]
+        public Data? Data { get; set; }
     }
 }
