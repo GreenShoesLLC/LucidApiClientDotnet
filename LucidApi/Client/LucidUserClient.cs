@@ -13,7 +13,7 @@ namespace LucidApi.Client
 {
     public class LucidUserClient : LucidClientBase
     {
-        public override string AuthUrl => "https://lucid.app/oauth2/authorize";
+        public override string AuthUrl => "https://lucid.app/oauth2/authorize"; 
         private static readonly HashSet<string> UserOnlyScopes = new HashSet<string>
         {
             "user.profile"

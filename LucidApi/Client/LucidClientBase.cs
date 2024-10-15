@@ -17,7 +17,7 @@ namespace LucidApi.Client
         protected string _clientSecret;
         protected string _redirectUri;
         protected List<string> _scopes;
-        protected Dictionary<string, object> _tokenData;
+        protected Dictionary<string, object> _tokenData = new Dictionary<string, object>();
         protected bool _isPublished;
 
         public abstract string AuthUrl { get; }
@@ -25,6 +25,8 @@ namespace LucidApi.Client
 
         protected const string TokenUrl = "https://api.lucid.co/oauth2/token";
         protected const string ApiBaseUrl = "https://api.lucid.co";
+
+        private readonly bool _exportResponses;
 
         public Dictionary<string, object> TokenData
         {
@@ -52,7 +54,7 @@ namespace LucidApi.Client
             _redirectUri = redirectUri;
             _scopes = scopes;
             _isPublished = isPublished;
-
+            _exportResponses = bool.Parse(Environment.GetEnvironmentVariable("EXPORT_RESPONSES") ?? "false");
         }
 
         public string GetAuthorizationUrl()
@@ -74,7 +76,7 @@ namespace LucidApi.Client
 
             return $"{AuthUrl}?{queryString}";
         }
-        public async Task<Dictionary<string, object>> GetAccessTokenAsync(string code)
+        public async Task<Dictionary<string, object>> GetAccessTokenFromVerificationCodeAsync(string code)
         {
             var data = new Dictionary<string, string>
             {
@@ -288,7 +290,17 @@ namespace LucidApi.Client
 
                     try
                     {
-                        return JToken.Parse(responseContent);
+                        var jsonResponse = JToken.Parse(responseContent);
+                        if (_exportResponses)
+                        {
+                            // Save the response content to a JSON file
+                            var saver = new ApiResponseSaver();
+                            string filePath = $"./responses/response_{DateTime.Now:yyyyMMdd_HHmmss}.json"; //path with timestamp
+                            await saver.SaveJsonToFileAsync(jsonResponse, filePath);
+                        }
+
+
+                        return jsonResponse;
                     }
                     catch (JsonReaderException)
                     {

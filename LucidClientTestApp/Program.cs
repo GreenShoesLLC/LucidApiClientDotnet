@@ -46,8 +46,6 @@ class Program
     {
         // await AccountClientStuff();
         await UserClientStuff();
-
-
     }
     private static string? GetEnvironmentVariable(string variableName)
     {
@@ -64,7 +62,7 @@ class Program
         if (!string.IsNullOrEmpty(lucidClientId) && !string.IsNullOrEmpty(lucidClientSecret) && !string.IsNullOrEmpty(lucidRedirectUri))
         {
             var accountClient = new LucidAccountClient(lucidClientId, lucidClientSecret, lucidRedirectUri, LucidScopes.AccountScopes);
-            await GetAccessTokenAsync(accountClient);
+            await GetAccessTokenFromVerificationCodeAsync(accountClient);
 
             try
             {
@@ -92,18 +90,13 @@ class Program
                 Console.WriteLine($"Error during token introspection: {ex.Message}");
             }
         }
-
-
-
-
-
     }
     static async Task UserClientStuff()
     {
         if (!string.IsNullOrEmpty(lucidClientId) && !string.IsNullOrEmpty(lucidClientSecret) && !string.IsNullOrEmpty(lucidRedirectUri))
         {
             var user_client = new LucidUserClient(lucidClientId, lucidClientSecret, lucidRedirectUri, LucidScopes.UserScopes);
-            await GetAccessTokenAsync(user_client);
+            await GetAccessTokenFromVerificationCodeAsync(user_client);
 
 
             try
@@ -180,7 +173,7 @@ class Program
 
     }
 
-    static async Task<Dictionary<string, object>> GetAccessTokenAsync(LucidClientBase client)
+    static async Task<Dictionary<string, object>> GetAccessTokenFromVerificationCodeAsync(LucidClientBase client)
     {
         var auth_url = client.GetAuthorizationUrl();
         Console.WriteLine($"Please visit this URL to authorize the application: {auth_url}");
@@ -193,7 +186,7 @@ class Program
             throw new InvalidOperationException("Authorization code cannot be null.");
         }
 
-        var token_data = await client.GetAccessTokenAsync(code);
+        var token_data = await client.GetAccessTokenFromVerificationCodeAsync(code);
         Console.Write("Access token obtained and stored.");
         return token_data;
     }
