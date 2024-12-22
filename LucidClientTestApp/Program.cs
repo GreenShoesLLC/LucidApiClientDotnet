@@ -115,8 +115,8 @@ class Program
 
                     // Fetch all documents without any filters
                     var allDocuments = await user_client.SearchDocumentsAsync();
-
-                    foreach (var document in allDocuments.Where(x => x.Title == "FlowchartQuodsi"))
+                    // foreach (var document in allDocuments.Where(x => x.Title == "FlowchartQuodsi"))
+                    foreach (var document in allDocuments.Where(x => x.Title?.Contains("Quodsi", StringComparison.OrdinalIgnoreCase) == true))
                     {
                         Console.WriteLine($"Document ID: {document.DocumentId ?? "N/A"}, Title: {document.Title ?? "Untitled"}");
 

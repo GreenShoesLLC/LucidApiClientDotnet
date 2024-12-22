@@ -295,7 +295,7 @@ namespace LucidApi.Client
                         {
                             // Save the response content to a JSON file
                             var saver = new ApiResponseSaver();
-                            string filePath = $"./responses/response_{DateTime.Now:yyyyMMdd_HHmmss}.json"; //path with timestamp
+                            string filePath = GetDescriptiveFileName(url, jsonResponse);
                             await saver.SaveJsonToFileAsync(jsonResponse, filePath);
                         }
 
@@ -515,6 +515,38 @@ namespace LucidApi.Client
             {
                 throw new LucidOAuthException("api_error", $"Failed to get account info: {ex.Message}");
             }
+        }
+        private string GetDescriptiveFileName(string url, JToken response)
+        {
+            // Extract meaningful parts from the URL
+            var urlParts = url.Split('/');
+            var operationType = urlParts[^1].Replace("?", ""); // Last part of URL
+
+            // Try to get document ID if it exists in the URL or response
+            string documentId = "";
+            if (url.Contains("/documents/"))
+            {
+                documentId = urlParts[Array.IndexOf(urlParts, "documents") + 1];
+            }
+            else if (response["documentId"] != null)
+            {
+                documentId = response["documentId"].ToString();
+            }
+
+            // Create descriptive name
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            string fileName;
+
+            if (!string.IsNullOrEmpty(documentId))
+            {
+                fileName = $"doc_{documentId}_{operationType}_{timestamp}.json";
+            }
+            else
+            {
+                fileName = $"{operationType}_{timestamp}.json";
+            }
+
+            return Path.Combine("responses", fileName);
         }
     }
 }
